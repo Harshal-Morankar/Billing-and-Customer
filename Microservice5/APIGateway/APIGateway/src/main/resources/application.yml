@@ -1,0 +1,53 @@
+server:
+  port: 2022
+
+spring:
+  application:
+    name: APIGATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: CustomerService
+          uri: lb://CustomerService
+          predicates:
+            - Path=/customers/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: CustomerService
+                fallbackuri: forward:/customerfallback
+
+        - id: BillingService
+          uri: lb://BillingService
+          predicates:
+            - Path=/billings/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: BillingService
+                fallbackuri: forward:/billingfallback
+
+
+
+
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
+
+
+
+
+
